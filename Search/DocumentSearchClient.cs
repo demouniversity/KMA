@@ -42,7 +42,7 @@ namespace CognitiveSearch.UI
         private string idField { get; set; }
 
         // Client logs all searches in Application Insights
-        private static TelemetryClient telemetryClient = new TelemetryClient(new Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration {ConnectionString= "InstrumentationKey=be59a080-a3ed-fe6f-8b1a-98013b9e494d;EndpointSuffix=applicationinsights.us;IngestionEndpoint=https://usgovvirginia-1.in.applicationinsights.azure.us/;AADAudience=https://monitor.azure.us/" });
+        private static TelemetryClient telemetryClient = null;
         public string SearchId { get; set; }
 
         public SearchSchema Schema { get; set; }
@@ -75,6 +75,10 @@ namespace CognitiveSearch.UI
                 SearchEndpoint = configuration.GetSection("SearchEndpoint")?.Value;
                 BlobStorageEndpoint = configuration.GetSection("BlobStorageEndpoint")?.Value;
                 idField = configuration.GetSection("KeyField")?.Value;
+
+                //setup app insights
+                string appInsightsConnection = configuration.GetSection("ApplicationInsightsConnection")?.Value;
+                telemetryClient = new TelemetryClient(new Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration { ConnectionString = appInsightsConnection });
                 telemetryClient.InstrumentationKey = configuration.GetSection("InstrumentationKey")?.Value;
                 
 
@@ -90,7 +94,8 @@ namespace CognitiveSearch.UI
                 Schema = new SearchSchema().AddFields(_searchIndexClient.GetIndex(IndexName).Value.Fields);
                 Model = new SearchModel(Schema);
 
-                _isPathBase64Encoded = (configuration.GetSection("IsPathBase64Encoded")?.Value == "True");
+                bool base64config = false;
+                _isPathBase64Encoded = (!Boolean.TryParse(configuration.GetSection("IsPathBase64Encoded")?.Value, out base64config)) ? false:base64config ;
 
             }
             catch (Exception e)
@@ -480,11 +485,11 @@ namespace CognitiveSearch.UI
             s_containerAddresses[1] = _configuration.GetSection("StorageContainerAddress2")?.Value.ToLower();
             s_containerAddresses[2] = _configuration.GetSection("StorageContainerAddress3")?.Value.ToLower();
             int s_containerAddressesLength = s_containerAddresses.Length;
-            if (String.Equals(s_containerAddresses[1], defaultContainerUriValue))
+            if (String.IsNullOrEmpty(s_containerAddresses[1]) || String.Equals(s_containerAddresses[1], defaultContainerUriValue))
             {
                 s_containerAddressesLength--;
             }
-            if (String.Equals(s_containerAddresses[2], defaultContainerUriValue))
+            if (String.IsNullOrEmpty(s_containerAddresses[2]) || String.Equals(s_containerAddresses[2], defaultContainerUriValue))
             {
                 s_containerAddressesLength--;
             }

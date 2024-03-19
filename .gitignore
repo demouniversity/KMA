@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/bin/Debug/netcoreapp3.1
+/obj
+/appsettings.Development.json
+/CognitiveSearch.UI.zip
+/appsettings.Development.json
+/bin/Release/netcoreapp3.1
